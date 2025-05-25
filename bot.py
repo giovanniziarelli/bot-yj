@@ -25,10 +25,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    welcome_message = (
-        "Ciao! 👋 Sono ForTu, il Bot che ti accompagnerà nelle giornate di accoglienza "
-        "nella diocesi di Orvieto-Todi.\nIn che lingua vuoi parlarmi? 🌍"
-    )
+    welcome_message = ("Hello! 👋 I'm ForTu, the bot that will accompany you during the welcome days in the Diocese of Orvieto-Todi.\nWhat language would you like to speak with me? 🌍")
     await update.message.reply_text(welcome_message, reply_markup=reply_markup)
 
 # Gestione della lingua scelta
