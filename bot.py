@@ -66,7 +66,7 @@ async def handle_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     lang = query.data.replace("lang_", "")
-    context.user_data["lang"] = lang  # salva la lingua scelta
+    context.user_data["lang"] = lang
 
     data = LANG_TEXTS.get(lang, LANG_TEXTS["en"])
     greeting = data["greeting"]
@@ -75,7 +75,11 @@ async def handle_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton(text, callback_data=f"req_{code}")] for text, code in buttons]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(greeting, reply_markup=reply_markup)
+    # Invia un messaggio con la frase tipo "Come posso esserti utile?"
+    await query.message.reply_text(greeting)
+
+    # Subito dopo, invia i pulsanti come messaggio separato
+    await query.message.reply_text("👇", reply_markup=reply_markup)
 
 # Risposte ai pulsanti informativi
 async def handle_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
