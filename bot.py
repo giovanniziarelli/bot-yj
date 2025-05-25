@@ -4,15 +4,44 @@ import os
 #TOKEN = os.environ["BOT_TOKEN"]
 #TOKEN = "7990873992:AAH4aQzGa7Lm5QKe6oWMYlEt1LDmnghc_sc"
 TOKEN = "8015077440:AAHaL2yfBbranjcoySyDx7f5Fw5TjWFhDbY"
-# Dizionario di traduzioni
-LANG_MESSAGES = {
-    "it": "Come posso esserti utile?",
-    "en": "How can I help you?",
-    "es": "¿Cómo puedo ayudarte?",
-    "pt": "Como posso te ajudar?"
+
+# Traduzioni dei testi
+LANG_TEXTS = {
+    "it": {
+        "greeting": "Come posso esserti utile?",
+        "buttons": [
+            ("📍 Dov'è la segreteria", "office"),
+            ("🚻 Dove sono i bagni", "bathroom"),
+            ("ℹ️ Dov'è il centro informazioni", "info"),
+        ],
+    },
+    "en": {
+        "greeting": "How can I help you?",
+        "buttons": [
+            ("📍 Where is the office?", "office"),
+            ("🚻 Where are the bathrooms?", "bathroom"),
+            ("ℹ️ Where is the info point?", "info"),
+        ],
+    },
+    "es": {
+        "greeting": "¿Cómo puedo ayudarte?",
+        "buttons": [
+            ("📍 ¿Dónde está la secretaría?", "office"),
+            ("🚻 ¿Dónde están los baños?", "bathroom"),
+            ("ℹ️ ¿Dónde está el punto de información?", "info"),
+        ],
+    },
+    "pt": {
+        "greeting": "Como posso te ajudar?",
+        "buttons": [
+            ("📍 Onde fica a secretaria?", "office"),
+            ("🚻 Onde ficam os banheiros?", "bathroom"),
+            ("ℹ️ Onde fica o ponto de informações?", "info"),
+        ],
+    }
 }
 
-# /start
+# Messaggio iniziale con scelta lingua
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
@@ -25,23 +54,68 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    welcome_message = ("Hello! 👋 I'm ForTu, the bot that will accompany you during the welcome days in the Diocese of Orvieto-Todi.\nWhat language would you like to speak with me? 🌍")
-    await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+    welcome = (
+        "Ciao! 👋 Sono ForTu, il Bot che ti accompagnerà nelle giornate di accoglienza "
+        "nella diocesi di Orvieto-Todi.\nIn che lingua vuoi parlarmi? 🌍"
+    )
+    await update.message.reply_text(welcome, reply_markup=reply_markup)
 
-# Gestione della lingua scelta
+# Dopo scelta lingua → mostra i 3 pulsanti
 async def handle_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     lang = query.data.replace("lang_", "")
-    response = LANG_MESSAGES.get(lang, "How can I help you?")
-    await query.edit_message_text(text=response)
+    context.user_data["lang"] = lang  # salva la lingua scelta
 
+    data = LANG_TEXTS.get(lang, LANG_TEXTS["en"])
+    greeting = data["greeting"]
+    buttons = data["buttons"]
+
+    keyboard = [[InlineKeyboardButton(text, callback_data=f"req_{code}")] for text, code in buttons]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(greeting, reply_markup=reply_markup)
+
+# Risposte ai pulsanti informativi
+async def handle_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    code = query.data.replace("req_", "")
+    lang = context.user_data.get("lang", "en")
+
+    # Risposte di esempio (puoi personalizzarle)
+    RESPONSES = {
+        "office": {
+            "it": "📍 La segreteria si trova presso l’edificio A, piano terra.",
+            "en": "📍 The office is in Building A, ground floor.",
+            "es": "📍 La secretaría está en el Edificio A, planta baja.",
+            "pt": "📍 A secretaria fica no prédio A, térreo.",
+        },
+        "bathroom": {
+            "it": "🚻 I bagni si trovano accanto alla mensa.",
+            "en": "🚻 The bathrooms are next to the cafeteria.",
+            "es": "🚻 Los baños están al lado del comedor.",
+            "pt": "🚻 Os banheiros ficam ao lado do refeitório.",
+        },
+        "info": {
+            "it": "ℹ️ Il centro informazioni è nella hall principale.",
+            "en": "ℹ️ The info point is in the main hall.",
+            "es": "ℹ️ El punto de información está en el vestíbulo principal.",
+            "pt": "ℹ️ O ponto de informações fica no saguão principal.",
+        }
+    }
+
+    msg = RESPONSES.get(code, {}).get(lang, "❓")
+    await query.edit_message_text(msg)
+
+# Setup bot
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_language, pattern="^lang_"))
+    app.add_handler(CallbackQueryHandler(handle_request, pattern="^req_"))
 
-    print("✅ Bot multilingua avviato.")
+    print("✅ Bot multilingua con pulsanti avviato.")
     app.run_polling()
 
