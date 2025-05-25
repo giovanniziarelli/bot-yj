@@ -1,7 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os
-TOKEN = os.environ["BOT_TOKEN"]
+#TOKEN = os.environ["BOT_TOKEN"]
+TOKEN = "7990873992:AAH4aQzGa7Lm5QKe6oWMYlEt1LDmnghc_sc"
 
 # Dizionario di traduzioni
 LANG_MESSAGES = {
